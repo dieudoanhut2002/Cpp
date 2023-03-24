@@ -67,8 +67,8 @@ int main() {
     return 0;
 }
 
-*/
 
+*/
 
 /*
 
@@ -112,8 +112,8 @@ int main() {
 
 */
 
-
 /*
+
 
 #include <iostream>
 #include <memory>
@@ -166,107 +166,83 @@ public:
         return account_->get_balance();
     }
 };
-class Account : public IAccount {
-private:
-    int balance_;
-public:
-    Account(int balance) : balance_(balance) {}
 
-    void deposit(int amount) override {
-        balance_ += amount;
-    }
-
-    void withdraw(int amount) override {
-        if (balance_ >= amount) {
-            balance_ -= amount;
-        }
-        else {
-            std::cout << "Not enough balance!" << std::endl;
-        }
-    }
-
-    int get_balance() const override {
-        return balance_;
-    }
-
-
-};
-
-class AccountProxy : public IAccount {
-public:
-    AccountProxy(int balance) : account_(new Account(balance)) {}
-
-    void deposit(int amount) override {
-        account_->deposit(amount);
-    }
-
-    void withdraw(int amount) override {
-        account_->withdraw(amount);
-    }
-
-    int get_balance() const override {
-        return account_->get_balance();
-    }
-
-private:
-    std::unique_ptr<Account> account_;
-};
+int main() {
+    AccountProxy account(100);
+    account.deposit(50);
+    std::cout << "Balance: " << account.get_balance() << std::endl;
+    account.withdraw(80);
+    std::cout << "Balance: " << account.get_balance() << std::endl;
+    account.withdraw(100);
+    std::cout << "Balance: " << account.get_balance() << std::endl;
+    return 0;
+}
 
 
 */
 
-/*
+
+
 
 #include<iostream>
 
-class IService {
+class ServiceInterface {
 public:
     virtual void operation() = 0;
 };
-class realService : public IService {
+class realService : public ServiceInterface {
     private:
-        
-        int attribue1;
+        static int enterCount;
     public:
-        realService(int att1) : attribue1(att1) {};
+        realService(){};
+        
         void operation() override {
             // do some additional actions.
-            std::cout << " You have entered Service zone, do what you want here!";
+            enterCount++;
+            std::cout << " You have entered Service zone by " << enterCount << " time, do what you want here!\n";
         }
 };
-class proxyService : public IService {
-    private:
-        const std::string authCode = "12345";
-        std::unique_ptr<realService> s;
-        std::string chk;
+int realService::enterCount = 0;
+class proxyService : public ServiceInterface {
+    private:        
+        realService* s = nullptr;
+        bool accessKey;        
     public:
+        
+        proxyService(bool acc) : accessKey(acc){};
         void operation() override {
-            if (checkAccess(chk))
+            if (!checkAccess())
             {
-                s->operation();
+                std::cout << "You are not allowed to enter!";
+                return;
             }
-            else {
-                std::cout << " You entered invalid an authorized code!";
+            if(!s) {
+                s = new realService();
+                std::cout << "You have created an realService Object\n";
             }
+            s->operation();
         }
-        bool checkAccess(std::string check) {
-            std::cout << "Please enter the authorize code:\n";
-            std::cin >> check;
-            return (check == authCode);
-        }
+        bool checkAccess() {
+            // Do something on checking
+            return(accessKey);
+        };
 };
 
 int main()
 {
-    proxyService p;
-    std::string check_;
-    p.checkAccess(check_);
-    p.operation();
+    proxyService p1(true);
+    p1.operation();
+    p1.operation();
+    p1.operation();
+    proxyService p2(false);
+    p2.operation();
+    
     return 0;
 }
 
-*/
 
+
+/*
 
 #include <iostream>
 #include <string>
@@ -349,3 +325,5 @@ int main()
 
     return 0;
 }
+
+*/
