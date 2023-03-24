@@ -215,6 +215,7 @@ private:
 
 */
 
+/*
 
 #include<iostream>
 
@@ -261,5 +262,90 @@ int main()
     std::string check_;
     p.checkAccess(check_);
     p.operation();
+    return 0;
+}
+
+*/
+
+
+#include <iostream>
+#include <string>
+
+
+// Forward declaration of the Image class
+class Image;
+
+// Interface for the ImageProxy class
+class ImageProxy
+{
+public:
+    ImageProxy(const std::string& filename);
+    ~ImageProxy();
+
+    void display();
+
+private:
+    std::string m_filename;
+    Image* m_image;
+};
+
+// Implementation of the ImageProxy class
+ImageProxy::ImageProxy(const std::string& filename)
+    : m_filename(filename), m_image(nullptr)
+{
+}
+
+ImageProxy::~ImageProxy()
+{
+    delete m_image;
+}
+
+void ImageProxy::display()
+{
+    if (!m_image)
+    {
+        m_image = new Image(m_filename);
+    }
+
+    m_image->display();
+}
+
+// Implementation of the Image class
+class Image
+{
+public:
+    Image(const std::string& filename)
+        : m_filename(filename)
+    {
+        // Load image from file
+    }
+
+    ~Image()
+    {
+        // Unload image from memory
+    }
+
+    void display()
+    {
+        // Display image on screen
+    }
+
+private:
+    std::string m_filename;
+};
+
+// Usage of the ImageProxy and Image classes
+int main()
+{
+    ImageProxy* imageProxy = new ImageProxy("image.jpg");
+
+    // Image is not loaded yet
+    imageProxy->display();
+
+    // Image is loaded from file and displayed on screen
+    imageProxy->display();
+
+    delete imageProxy;
+
     return 0;
 }

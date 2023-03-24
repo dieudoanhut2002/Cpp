@@ -1,2 +1,7 @@
 ﻿  Source.cpp
-  Proxy Pattern Example.vcxproj -> C:\Users\admin\hackerrank-solutions\Proxy Pattern Example\x64\Debug\Proxy Pattern Example.exe
+G:\MyCppLearning\Cpp\Proxy Pattern Example\Source.cpp(300,5): warning C4150: deletion of pointer to incomplete type 'Image'; no destructor called
+G:\MyCppLearning\Cpp\Proxy Pattern Example\Source.cpp(276,7): message : see declaration of 'Image'
+G:\MyCppLearning\Cpp\Proxy Pattern Example\Source.cpp(307,40): error C2027: use of undefined type 'Image'
+G:\MyCppLearning\Cpp\Proxy Pattern Example\Source.cpp(276,7): message : see declaration of 'Image'
+G:\MyCppLearning\Cpp\Proxy Pattern Example\Source.cpp(310,12): error C2027: use of undefined type 'Image'
+G:\MyCppLearning\Cpp\Proxy Pattern Example\Source.cpp(276,7): message : see declaration of 'Image'
