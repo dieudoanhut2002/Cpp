@@ -205,7 +205,7 @@ class realService : public ServiceInterface {
 int realService::enterCount = 0;
 class proxyService : public ServiceInterface {
     private:        
-        realService* s = nullptr;
+        realService* s;
         bool accessKey;        
     public:
         
