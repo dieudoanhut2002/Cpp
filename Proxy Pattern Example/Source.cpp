@@ -181,7 +181,7 @@ int main() {
 
 */
 
-
+/*
 
 
 #include<iostream>
@@ -240,7 +240,7 @@ int main()
     return 0;
 }
 
-
+*/
 
 /*
 
@@ -327,3 +327,53 @@ int main()
 }
 
 */
+
+
+#include<iostream>
+
+class ServiceInterface {
+public:
+    virtual void operation() = 0;
+};
+class realService : public ServiceInterface {
+
+public:
+    realService() {};
+
+    void operation() override {
+        std::cout << " do some additional actions! " << std::endl;
+    }
+};
+class proxyService : public ServiceInterface {
+private:
+    realService* s;
+    bool checkAccess;
+public:
+    proxyService(bool chk): checkAccess(chk) {};
+    void operation() override {
+        if (!checkAccess)
+        {           
+            std::cout << "Access Denied!" << std::endl;
+            return;
+        }
+        std::cout << "Access Granted!" << std::endl;
+        if (!s) {
+            s = new realService();
+            std::cout << "New Service!\n";
+        }
+        s->operation();
+    }  
+};
+
+int main()
+{
+    proxyService p1(true);
+    p1.operation();
+    p1.operation();
+    p1.operation();
+    proxyService p2(false);
+    p2.operation();
+
+    return 0;
+}
+
