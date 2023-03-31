@@ -1,379 +1,250 @@
-/*
+﻿/*
+
 
 #include <iostream>
 #include <string>
-
-// Image interface
+#include <thread>
+//Triển khai giao diện Interface chung cho Proxy và ProxyImage
 class Image {
 public:
+    virtual ~Image() {};    // Phải khởi tạo hàm pure Virtual Destructor ở Interface thì mới gọi được Destructor ở các Child Classes
     virtual void display() = 0;
 };
 
-// Real Image class that loads and displays images
-class RealImage : public Image {
-private:
-    std::string filename;
+// Class RealImage quản lý dữ liệu thật 
 
+class RealImage {
 public:
-    RealImage(const std::string& filename) : filename(filename) {
-        load(filename);
-    }
+    std::string imageName;
+    int imagePrize;
+    RealImage(std::string name, int prize) : imageName(name), imagePrize(prize) {}; 
+};
 
-    void display() override {
-        std::cout << "Displaying image " << filename << std::endl;
-    }
-
-    void load(const std::string& filename) {
-        std::cout << "Loading image " << filename << std::endl;
-        // Load image from file system
+//Triển khai lớp ProxyImage kế thừa từ Interface, giao diện giống RealImage 
+//và thực hiện copy dữ liệu từ RealImage
+class ProxyImage : public Image {
+public:
+    std::string imageName_;
+    int imagePrize_;
+    ProxyImage(const RealImage& im) {
+        this->imageName_ = im.imageName;
+        this->imagePrize_ = im.imagePrize;
+    };    
+    void display() {
+        // Hiển thị thông tin trong ProxyImage
+        std::cout << "Image " << imageName_ << "'s prize is: " << imagePrize_ << "USD" << std::endl;
     }
 };
 
-// Proxy class that creates RealImage objects on demand
-class ImageProxy : public Image {
+//Triển khai lớp Proxy kế thừa từ Interface trên, bao gồm một con trỏ tới đối tượng ProxyImage
+class Proxy : public Image {  
 private:
-    RealImage* realImage = nullptr;
-    std::string filename;
-    bool authorized;
-
+    RealImage realim__;
+    ProxyImage* image__;
 public:
-    ImageProxy(const std::string& filename, bool authorized) : filename(filename), authorized(authorized) {}
-
-    void display() override {
-        if (!authorized) {
-            std::cout << "Access denied to image " << filename << std::endl;
-            return;
-        }
-        if (!realImage) {
-            realImage = new RealImage(filename);
-        }
-        realImage->display();
+    Proxy(const RealImage& realim) : realim__(realim), image__(nullptr) {};     
+    ~Proxy() {
+        if (image__) {               // Nếu Proxy đã được khởi tạo
+            delete image__;          // Xóa bộ nhớ đệm khi không xử dụng Proxy nữa
+            image__ = nullptr;       // gán image_ pointer về nullptr để tránh trỏ đến vùng nhớ không hợp lệ có thể gây lỗi.
+            std::cout << "Destructor!\n";
+        }      
     }
+    void display() {                //  Khi có yêu cầu thực hiện thủ tục display 
+        if (!image__) {              //  Nếu Proxy chưa tồn tại trước đó            
+            image__ = new ProxyImage(realim__);   // Sao chép thông tin của đối tượng RealImage thật vào ProxyImage
+            std::cout << "New Proxy is created!\n";
+        }
+        else std::cout << "Proxy was created before!\n";
+        image__->display();          // Nếu dữ liêu đã có thực hiện thủ tục display từ ProxyImage. 
+    }
+
 };
 
 int main() {
-    // Create an authorized ImageProxy object
-    Image* image1 = new ImageProxy("sensitive_image.jpg", true);
-    image1->display();
 
-    // Create an unauthorized ImageProxy object
-    Image* image2 = new ImageProxy("sensitive_image.jpg", false);
-    image2->display();
-
-    // Create a RealImage object directly
-    Image* image3 = new RealImage("normal_image.jpg");
-    image3->display();
-
-    return 0;
-}
-
-
-*/
-
-/*
-
-#include <iostream>
-#include <string>
-class Subject {
-public:
-    virtual void request() = 0;
-};
-class RealSubject : public Subject {
-public:
-    void request() {
-        // Implementation of request
-    }
-};
-class Proxy : public Subject {
-private:
-    RealSubject realSubject;
-    bool checkAccess() {
-        // Check access permission
-        return true;
-    }
-public:
-    void request() {
-        // Perform additional functionality before calling request() on RealSubject
-        if (checkAccess()) {
-            realSubject.request();
-            // Perform additional functionality after calling request() on RealSubject
-        }
-    }
-};
-
-
-int main() {
-    Proxy proxy;
-    proxy.request();
-
-    return 0;
-}
-
-
-*/
-
-/*
-
-
-#include <iostream>
-#include <memory>
-class IAccount {
-public:
-    virtual void deposit(int amount) = 0;
-    virtual void withdraw(int amount) = 0;
-    virtual int get_balance() const = 0;
-};
-class Account : public IAccount {
-private:
-    int balance_;
-public:
-    Account(int balance) : balance_(balance) {}
-
-    void deposit(int amount) override {
-        balance_ += amount;
-    }
-
-    void withdraw(int amount) override {
-        if (balance_ >= amount) {
-            balance_ -= amount;
-        }
-        else {
-            std::cout << "Not enough balance!" << std::endl;
-        }
-    }
-
-    int get_balance() const override {
-        return balance_;
-    }
-
-};
-
-class AccountProxy : public IAccount {
-private:
-    std::unique_ptr<Account> account_;
-public:
-    AccountProxy(int balance) : account_(new Account(balance)) {}
-
-    void deposit(int amount) override {
-        account_->deposit(amount);
-    }
-
-    void withdraw(int amount) override {
-        account_->withdraw(amount);
-    }
-
-    int get_balance() const override {
-        return account_->get_balance();
-    }
-};
-
-int main() {
-    AccountProxy account(100);
-    account.deposit(50);
-    std::cout << "Balance: " << account.get_balance() << std::endl;
-    account.withdraw(80);
-    std::cout << "Balance: " << account.get_balance() << std::endl;
-    account.withdraw(100);
-    std::cout << "Balance: " << account.get_balance() << std::endl;
-    return 0;
-}
-
-
-*/
-
-/*
-
-
-#include<iostream>
-
-class ServiceInterface {
-public:
-    virtual void operation() = 0;
-};
-class realService : public ServiceInterface {
-    private:
-        static int enterCount;
-    public:
-        realService(){};
-        
-        void operation() override {
-            // do some additional actions.
-            enterCount++;
-            std::cout << " You have entered Service zone by " << enterCount << " time, do what you want here!\n";
-        }
-};
-int realService::enterCount = 0;
-class proxyService : public ServiceInterface {
-    private:        
-        realService* s;
-        bool accessKey;        
-    public:
-        
-        proxyService(bool acc) : accessKey(acc){};
-        void operation() override {
-            if (!checkAccess())
-            {
-                std::cout << "You are not allowed to enter!";
-                return;
-            }
-            if(!s) {
-                s = new realService();
-                std::cout << "You have created an realService Object\n";
-            }
-            s->operation();
-        }
-        bool checkAccess() {
-            // Do something on checking
-            return(accessKey);
-        };
-};
-
-int main()
-{
-    proxyService p1(true);
-    p1.operation();
-    p1.operation();
-    p1.operation();
-    proxyService p2(false);
-    p2.operation();
+    RealImage rl("Picasso", 1500);
     
+    
+    std::thread t1([]() {
+        Image* image = new Proxy(rl);
+
+    // Gọi phương thức display thông qua Proxy lần đầu sẽ tải mới và hiển thị ảnh.
+    image->display();
+
+    // Lần gọi tiếp theo sẽ không cần tải lại ảnh mà lấy từ bộ đệm
+    image->display();
+
+    delete image;  // Thực chất là delete Proxy trước khi thoát khỏi ứng dụng
+        }
+    );
+    t1.join();
+    
+    
+
+    Image* image = new Proxy(rl);
+   
+    // Gọi phương thức display thông qua Proxy lần đầu sẽ tải mới và hiển thị ảnh.
+    image->display();
+
+    // Lần gọi tiếp theo sẽ không cần tải lại ảnh mà lấy từ bộ đệm
+    image->display();
+    image->display();
+    image->display();
+    delete image;  // Thực chất là delete Proxy trước khi thoát khỏi ứng dụng
     return 0;
 }
 
 */
 
 /*
-
 #include <iostream>
 #include <string>
-
-
-// Forward declaration of the Image class
-class Image;
-
-// Interface for the ImageProxy class
-class ImageProxy
-{
+#include <thread>
+//Triển khai giao diện Interface chung cho Proxy và ProxyImage
+class Image {
 public:
-    ImageProxy(const std::string& filename);
-    ~ImageProxy();
-
-    void display();
-
-private:
-    std::string m_filename;
-    Image* m_image;
+    virtual ~Image() {};    // Phải khởi tạo hàm pure Virtual Destructor ở Interface thì mới gọi được Destructor ở các Child Classes
+    virtual void display() = 0;
 };
 
-// Implementation of the ImageProxy class
-ImageProxy::ImageProxy(const std::string& filename)
-    : m_filename(filename), m_image(nullptr)
-{
-}
-
-ImageProxy::~ImageProxy()
-{
-    delete m_image;
-}
-
-void ImageProxy::display()
-{
-    if (!m_image)
-    {
-        m_image = new Image(m_filename);
-    }
-
-    m_image->display();
-}
-
-// Implementation of the Image class
-class Image
-{
+//Triển khai lớp ProxyImage kế thừa từ Interface, giao diện giống RealImage 
+//và thực hiện việc tải ảnh từ internet(copy dữ liệu từ RealImage)
+class ProxyImage : public Image {
 public:
-    Image(const std::string& filename)
-        : m_filename(filename)
-    {
-        // Load image from file
-    }
 
-    ~Image()
-    {
-        // Unload image from memory
+    ProxyImage(const std::string& url) {
+        // Thực hiện tải ảnh từ url - cấu trúc Contructor này phụ thuộc vào cấu trúc của dữ liệu thật
+        std::cout << "Thuc hien tai anh moi!\n";
     }
-
-    void display()
-    {
-        // Display image on screen
+    void display() {
+        // Thực hiện hiển thị ảnh
+        std::cout << "Hien thi anh da tai!\n";
     }
-
-private:
-    std::string m_filename;
 };
 
-// Usage of the ImageProxy and Image classes
-int main()
-{
-    ImageProxy* imageProxy = new ImageProxy("image.jpg");
+//Triển khai lớp Proxy kế thừa từ Interface trên, bao gồm một con trỏ tới đối tượng ProxyImage
+class Proxy : public Image {
+private:
+    std::string url_;
+    ProxyImage* image_;
+public:
+    Proxy(const std::string& url) : url_(url), image_(nullptr) {}
+    ~Proxy() {
+        if (image_) {               // Nếu Proxy đã được khởi tạo
+            delete image_;          // Xóa bộ nhớ đệm khi không xử dụng Proxy nữa
+            image_ = nullptr;       // gán image_ pointer về nullptr để tránh trỏ đến vùng nhớ không hợp lệ có thể gây lỗi.
+            std::cout << "Destructor!\n";
+        }
+    }
+    void display() {                //  Khi có yêu cầu thực hiện thủ tục display 
+        if (!image_) {              //  Nếu Proxy chưa tồn tại trước đó sẽ tạo một bộ nhớ đệm  để lưu trữ ảnh đã tải           
+            image_ = new ProxyImage(url_);   // Sao chép thông tin của đối tượng RealImage thật tại địa chỉ url vào đối tượng trung gian mới
+        }
+        image_->display();          // Nếu dữ liêu đã có chỉ cần hiển thị hình ảnh đã có từ bộ đệm. 
+    }
 
-    // Image is not loaded yet
-    imageProxy->display();
+};
 
-    // Image is loaded from file and displayed on screen
-    imageProxy->display();
+int main() {
+    std::thread t1([]() {
+        Image* image = new Proxy("http://example.com/image.jpg");
 
-    delete imageProxy;
+    // Gọi phương thức display thông qua Proxy lần đầu sẽ tải mới và hiển thị ảnh.
+    image->display();
 
+    // Lần gọi tiếp theo sẽ không cần tải lại ảnh mà lấy từ bộ đệm
+    image->display();
+
+    delete image;  // Thực chất là delete Proxy trước khi thoát khỏi ứng dụng
+        }
+    );
+
+    t1.join();
+    Image* image = new Proxy("http://example.com/image.jpg");
+
+    // Gọi phương thức display thông qua Proxy lần đầu sẽ tải mới và hiển thị ảnh.
+    image->display();
+
+    // Lần gọi tiếp theo sẽ không cần tải lại ảnh mà lấy từ bộ đệm
+    image->display();
+
+    delete image;  // Thực chất là delete Proxy trước khi thoát khỏi ứng dụng
     return 0;
 }
 
 */
 
 
-#include<iostream>
 
-class ServiceInterface {
-public:
-    virtual void operation() = 0;
+#include <iostream>
+#include <string>
+
+        //Triển khai giao diện Interface chung cho Proxy và ProxyObject
+class Interface {
+    public:
+        virtual ~Interface() {};    // Phải khởi tạo hàm pure Virtual Destructor ở Interface thì mới gọi được Destructor ở các Child Classes
+        virtual void operation() = 0;
 };
-class realService : public ServiceInterface {
 
-public:
-    realService() {};
+        // Class RealObject quản lý dữ liệu thật 
 
-    void operation() override {
-        std::cout << " do some additional actions! " << std::endl;
-    }
+class RealObject {
+    public:
+        int attribute1;
+        char attribute2;
+        bool attribute3;
+    RealObject(int att1, char att2, bool att3, int att4, char att5, bool att6) : attribute1(att1), attribute2(att2), attribute3(att3), attribute4(att4), attribute5(att5), attribute6(att6) {}
+    private:
+        int attribute4;
+        char attribute5;
+        bool attribute6;
 };
-class proxyService : public ServiceInterface {
-private:
-    realService* s;
-    bool checkAccess;
-public:
-    proxyService(bool chk): checkAccess(chk) {};
-    void operation() override {
-        if (!checkAccess)
-        {           
-            std::cout << "Access Denied!" << std::endl;
-            return;
+
+        // Triển khai Proxy Object Class chỉ cho truy cập đến 2 thuộc tính của Real Object
+
+ class ProxyObject : public Interface {
+    public:
+        int attribute1_;
+        char attribute2_;
+        ProxyObject(const RealObject& rlobj) : attribute1_(rlobj.attribute1), attribute2_(rlobj.attribute2) {};
+        void operation() {
+            std::cout << "Do something with Proxy Object!\n";
+            // Các thao tác trên Proxy Object không làm ảnh hưởng RealObject, qua đó bảo vệ và ẩn đi dữ liệu thật của RealObject
         }
-        std::cout << "Access Granted!" << std::endl;
-        if (!s) {
-            s = new realService();
-            std::cout << "New Service!\n";
+};
+ class ProxySevices : public Interface {
+    private:
+        RealObject rlobj__;
+        ProxyObject* pobj;
+    public:
+        ProxySevices(const RealObject& obj) : rlobj__(obj), pobj(nullptr) {}; 
+        ~ProxySevices() {
+            if (pobj) {
+                delete pobj;
+                pobj = nullptr;
+                std::cout << "Destructor!\n";
+            }
         }
-        s->operation();
-    }  
+        void operation() {
+            if (!pobj) {
+                pobj = new ProxyObject(rlobj__);
+                std::cout << "New Proxy is created!\n";
+            }
+            else std::cout << "Proxy was created before!\n";
+            pobj->operation();
+        }
 };
 
-int main()
-{
-    proxyService p1(true);
-    p1.operation();
-    p1.operation();
-    p1.operation();
-    proxyService p2(false);
-    p2.operation();
+ int main() {
+     RealObject object(1, 'A', true, 2, 'B', false);
+     Interface* pObject = new ProxySevices(object);
+     pObject->operation();
+     pObject->operation();
+     pObject->operation();
+     
+     delete pObject;
+     return 0;
+ }
 
-    return 0;
-}
 
