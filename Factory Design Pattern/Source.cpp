@@ -1,11 +1,10 @@
 ﻿#include <iostream>
 #include <string>
 
-
-
 class Shape {
 public:
     virtual void draw() = 0;
+    virtual ~Shape() {};
 };
 class Circle : public Shape {
 public:
@@ -13,6 +12,9 @@ public:
         // Triển khai để vẽ một hình tròn
         std::cout << "Circle drawn completed!\n";
     }
+    ~Circle() {
+        std::cout << "Circle Destructor!\n";
+    };
 };
 
 class Rectangle : public Shape {
@@ -20,6 +22,9 @@ public:
     void draw() override {
         // Triển khai để vẽ một hình chữ nhật
         std::cout << "Rectangle drawn completed!\n";
+    }
+    ~Rectangle() {
+        std::cout << "Rectangle Destructor!\n";
     }
 };
 class ShapeFactory {
