@@ -1,0 +1,1 @@
+G:\MyCppLearning\Cpp\Lambda function\x64\Debug\Lambda function.exe
